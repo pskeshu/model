@@ -1,10 +1,17 @@
 # Model: Machine Understanding of Cellular Life Discovery System
 
-**Model** is the core component in an active learning discovery system that coordinates the planning for preparing new samples based on experimental data from previous experiments. It iteratively generates and validates hypotheses, and generates sample_spec that acts as inputs for other automated processes, such as sample generation and imaging systems.
+**Model** is the core component in an active learning discovery system that holds a representation of the sample. Traditionally, a model holds a sample representation, but in an active learning process, the model receives data from experiments, from which the representations have to be updated, and at the same time, generate hypotheses for new experiments. It is not understood how to do that. This project is a demonstration of that process.
 
-## System Overview
+## The Challenge
 
-The Model operates within a closed-loop experimental framework where it analyzes experimental results, formulates testable hypotheses, and generates detailed experimental specifications. Unlike traditional machine learning models that perform pattern recognition on static datasets, Model actively participates in the experimental design process by generating structured experiment specifications and incorporating feedback from experimental outcomes.
+In traditional machine learning, models hold static representations learned from fixed datasets. However, in active learning for scientific discovery, the model must simultaneously:
+
+1. **Update its internal representations** based on incoming experimental data
+2. **Generate new experimental hypotheses** to test next
+
+This dual requirement creates a fundamental challenge: how does a model maintain coherent representations while actively designing experiments that may contradict or extend those representations? The process of representation updating and experiment generation must be tightly coupled, yet their interaction is not well understood.
+
+This project demonstrates one approach to this challenge through a multi-component architecture that explicitly separates and coordinates these functions.
 
 ## Active Learning Loop Architecture
 
@@ -23,11 +30,12 @@ graph LR
     style D fill:#f1f8e9
 ```
 
-### Example Experimental Cycle
+### Demonstration: Representation Updating + Experiment Generation
 
-The Model processes experimental data and generates hypotheses for subsequent testing. In this example, the Model analyzes cellular response patterns and designs a follow-up experiment:
+This example illustrates how the Model simultaneously updates its internal representations and generates new experiments. The Model begins with initial representations about cellular behavior, then updates these based on experimental results while generating new hypotheses to test:
 
-**Generated Sample_Spec**:
+**Initial representation**: "Cell density may affect protein expression"
+**Generated Sample_Spec** (to test this representation):
 ```json
 {
   "cell_line": "HeLa",
@@ -46,12 +54,15 @@ The Model processes experimental data and generates hypotheses for subsequent te
 }
 ```
 
-The experimental data from this specification is collected and fed back into the Model for analysis. Based on the observed cellular responses, the Model generates updated hypotheses and produces new sample specifications for subsequent experiments. This process continues iteratively, with each cycle informed by the accumulated experimental evidence.
+**Experimental Results**: p53 levels increase with cell density
+**Updated representation**: "Cell density affects p53 through contact inhibition pathway"
+**New generated hypothesis**: "Contact inhibition mediates density-dependent p53 accumulation"
 
-## Technical Architecture
+This demonstrates the core challenge: the Model must update its representation (from general "density affects expression" to specific "density affects p53 via contact inhibition") while simultaneously generating new experiments to test the updated representation. The coupling between representation updating and experiment generation is explicitly maintained throughout this process.
 
-### Multi-Head Neural Network
-The Model implements a multi-head architecture with six specialized components:
+## Our Approach: Multi-Head Architecture
+
+To address the representation-updating + experiment-generation challenge, we propose a multi-head neural network architecture that explicitly separates these functions while maintaining coordination between them. This architecture includes six specialized components:
 
 - **Proposal Generation**: Generates testable hypotheses based on current experimental evidence
 - **Methodology Planning**: Designs experimental protocols and optimizes resource allocation  
@@ -60,11 +71,11 @@ The Model implements a multi-head architecture with six specialized components:
 - **Conceptual Framework**: Maintains theoretical coherence across discoveries
 - **Context Management**: Maps the applicability boundaries of experimental findings
 
-### Validation Framework
-The Model implements systematic validation through falsification testing, where established findings are challenged with specifically designed adversarial experiments. Only results that survive these systematic attempts at refutation are incorporated into the knowledge base.
+### Representation Updating Strategy
+Our approach addresses the representation challenge through systematic validation and context-dependent knowledge structures. Established findings are continuously challenged with adversarial experiments, and only results that survive systematic refutation attempts are incorporated into the evolving knowledge base.
 
-### Context-Dependent Knowledge Representation
-The system maintains context-dependent knowledge structures, tracking not only experimental findings but also the specific conditions under which each finding applies. This includes mapping parameter spaces and identifying boundary conditions where relationships break down.
+### Knowledge-Experiment Coupling
+The architecture maintains explicit coupling between internal representations and experiment generation. As representations update based on new data, the experiment generation components receive updated context to inform future experimental designs. This coupling mechanism is a key demonstration of how to coordinate representation updating with active experimental design.
 
 ## Scientific Methodology
 
@@ -137,6 +148,8 @@ The system is designed to operate continuously, generating new experimental hypo
 
 ---
 
-The Model system implements an active learning approach to biological discovery, combining computational analysis with automated experimental design. The system generates structured experimental specifications (sample_spec) that serve as inputs to automated laboratory systems, creating a closed-loop discovery pipeline for cellular biology research.
+This project demonstrates one approach to the fundamental challenge of simultaneous representation updating and experiment generation in active learning systems. By explicitly separating these functions through a multi-head architecture while maintaining their coordination, we explore how computational models can evolve their understanding while actively designing experiments.
 
-*Current implementation status: The sample specification schema and core architectural design are complete. Integration with laboratory automation systems and the multi-head neural network implementation are in development.*
+The demonstration uses structured experimental specifications (sample_spec) as the interface between model representations and laboratory automation, providing a concrete framework for studying this representation-experiment coupling challenge.
+
+*Current implementation status: This is a research demonstration. The sample specification schema and architectural framework are complete. The multi-head neural network implementation and laboratory integration represent our proposed approach to this unsolved problem.*
