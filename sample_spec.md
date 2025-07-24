@@ -273,6 +273,7 @@ Extensible equipment specification:
     }
   }
 }
+```
 
 ## Documentation and Examples
 
@@ -444,4 +445,3 @@ Extensible equipment specification:
 - Use flow cytometry or imaging-based analysis
 - Include cell cycle synchronization treatments
 - Time points across cell cycle phases
-```
