@@ -1,255 +1,142 @@
 # Model: Machine Understanding of Cellular Life Discovery System
 
-## Project Summary
+**Model** is the core component in an active learning discovery system that coordinates the planning for preparing new samples based on experimental data from previous experiments. It iteratively generates and validates hypotheses, and generates sample_spec that acts as inputs for other automated processes, such as sample generation and imaging systems.
 
-**Model** is a computational discovery system that autonomously builds understanding of cellular life through empirical observation and experimentation. Unlike traditional models that passively represent data, this system operates as a "computational scientist" - actively generating hypotheses, designing experiments, and iteratively refining its understanding through systematic falsification.
+## System Overview
 
-### Why "Model"?
+The Model operates within a closed-loop experimental framework where it analyzes experimental results, formulates testable hypotheses, and generates detailed experimental specifications. Unlike traditional machine learning models that perform pattern recognition on static datasets, Model actively participates in the experimental design process by generating structured experiment specifications and incorporating feedback from experimental outcomes.
 
-We call this project "Model" because we're expanding the traditional definition of what a model can be. Rather than just a passive representation of data, we've added "batteries" - intelligent scaffolding that enables the model to:
-- Generate novel hypotheses about cellular phenomena  
-- Design experiments to test its own predictions
-- Update its understanding based on experimental results
-- Systematically attempt to falsify its own discoveries
+## Active Learning Loop Architecture
 
-This transforms the model from a mere representation into an active participant in the scientific discovery process. In the active learning loop of scientific discovery, the **Model** sits at the critical junction between observation and experimental design - it receives observations, integrates them into its understanding, and uses that updated knowledge to design the next round of experiments. This creates a continuous discovery spiral where each cycle deepens our understanding of cellular life.
-
-### Documentation Purpose
-
-This document defines the scope and requirements for the **Model** project - establishing what constitutes a valid model in the development of machine understanding of cells from empirical observations. It serves as our blueprint for building a computational scientist capable of autonomous biological discovery.
-
-## 1. System Overview
-
-### 1.1 Purpose
-Develop a computational discovery system that autonomously builds understanding of cellular life through empirical observation and experimentation. The system operates as a "computational scientist" that generates falsifiable hypotheses, designs experiments, interprets results, and iteratively refines its understanding of biological phenomena.
-
-### 1.2 Active Learning Loop Architecture
+The Model operates through a continuous feedback loop with laboratory automation systems:
 
 ```mermaid
 graph LR
-    A[Model] --> B[Experiment Design]
-    B --> C[Observation]
-    C --> A
+    A[Model analyzes results] --> B[Designs next experiment]
+    B --> C[Lab executes experiment] 
+    C --> D[Observes cellular behavior]
+    D --> A
     
     style A fill:#e1f5fe
     style B fill:#fff3e0
-    style C fill:#f1f8e9
+    style C fill:#f3e5f5
+    style D fill:#f1f8e9
 ```
 
-The system operates as a continuous active learning loop where the model designs experiments, observations are made, and the model updates itself based on the results to design better experiments in the next cycle.
+### Example Experimental Cycle
 
-### 1.3 Core Philosophy
-The system follows empirical scientific methodology: discoveries are considered valid only after surviving repeated attempts at falsification across multiple biological contexts. Truth is contextual - the system must identify not just what is true, but the specific contexts in which each truth applies.
+The Model processes experimental data and generates hypotheses for subsequent testing. In this example, the Model analyzes cellular response patterns and designs a follow-up experiment:
 
-## 2. Functional Requirements
+**Generated Sample_Spec**:
+```json
+{
+  "cell_line": "HeLa",
+  "passage_number": 12,
+  "treatments": [{
+    "name": "doxorubicin",
+    "concentration": 1,
+    "units": "µM",
+    "duration": 6,
+    "time_units": "hours"
+  }],
+  "imaging_parameters": {
+    "channels": ["DAPI", "p53_Alexa488"],
+    "time_lapse": {"interval": 300, "duration": 14400}
+  }
+}
+```
 
-### 2.1 Prediction Capabilities
-The model must generate predictions across multiple categories:
+The experimental data from this specification is collected and fed back into the Model for analysis. Based on the observed cellular responses, the Model generates updated hypotheses and produces new sample specifications for subsequent experiments. This process continues iteratively, with each cycle informed by the accumulated experimental evidence.
 
-**2.1.1 Temporal Predictions**
-- Forecast cellular state changes over time
-- Predict timing of biological events (division, differentiation, death)
-- Model dynamic processes and their temporal evolution
+## Technical Architecture
 
-**2.1.2 Conditional Predictions** 
-- Predict outcomes of experimental perturbations
-- Model "what-if" scenarios under different conditions
-- Forecast responses to environmental changes or treatments
+### Multi-Head Neural Network
+The Model implements a multi-head architecture with six specialized components:
 
-**2.1.3 Discovery of Novel Phenomena**
-- Identify previously unobserved cellular behaviors or patterns
-- Detect anomalies that may represent new biological mechanisms
-- Generate hypotheses about undiscovered cellular processes
+- **Proposal Generation**: Generates testable hypotheses based on current experimental evidence
+- **Methodology Planning**: Designs experimental protocols and optimizes resource allocation  
+- **Falsification**: Creates adversarial experiments to test the robustness of established findings
+- **Multi-Scale Integration**: Integrates phenomena across molecular, cellular, and population levels
+- **Conceptual Framework**: Maintains theoretical coherence across discoveries
+- **Context Management**: Maps the applicability boundaries of experimental findings
 
-**2.1.4 Pattern Recognition**
-- Identify recurring motifs across different biological contexts
-- Discover emergent patterns that may not be immediately obvious to human observers
-- Recognize when established patterns break down in specific contexts
+### Validation Framework
+The Model implements systematic validation through falsification testing, where established findings are challenged with specifically designed adversarial experiments. Only results that survive these systematic attempts at refutation are incorporated into the knowledge base.
 
-### 2.2 Experimental Design Capabilities
+### Context-Dependent Knowledge Representation
+The system maintains context-dependent knowledge structures, tracking not only experimental findings but also the specific conditions under which each finding applies. This includes mapping parameter spaces and identifying boundary conditions where relationships break down.
 
-**2.2.1 Novel Experiment Generation**
-- Design original experiments to test specific hypotheses
-- Optimize experimental parameters for maximum information gain
-- Generate creative approaches to test difficult-to-investigate phenomena
+## Scientific Methodology
 
-**2.2.2 Standard Protocol Adaptation**
-- Adapt established biological experimental protocols for specific questions
-- Combine existing methodologies in novel ways
-- Optimize standard protocols for automated execution
+### Discovery Validation
+- **Multi-Level Testing**: Validates findings across molecular, cellular, and population scales
+- **Context Mapping**: Systematically explores the boundaries where discoveries hold true
+- **Reproducibility**: Ensures discoveries are consistent across independent experiments
+- **Falsification Resistance**: Only accepts discoveries that survive attempts to disprove them
 
-**2.2.3 Context-Aware Design**
-- Design experiments appropriate for different biological scales (molecular, cellular, tissue, organism)
-- Account for experimental limitations and equipment constraints
-- Consider ethical and practical constraints in experimental design
+### Output Formats
+Model communicates discoveries through:
+- **Natural language** explanations for human researchers
+- **Mathematical models** with defined parameters and uncertainty bounds
+- **Visual representations** showing relationships and processes
+- **Structured protocols** for experimental replication
 
-### 2.3 Knowledge Representation and Output
+## Current Implementation Status
 
-**2.3.1 Multi-Modal Output Formats**
-- **Natural Language**: Clear explanations of discoveries and their implications
-- **Mathematical Notation**: Equations with defined variables and parameter explanations
-- **Visual Representations**: Network diagrams, process flows, spatial relationships
-- **Structured Proposals**: Formatted as scientific proposals with aim, objective, methodology, and expectations
+### ✅ Completed
+- **Sample_Spec Schema**: Complete specification for experimental conditions ([sample_spec.md](sample_spec.md))
+- **Conceptual Architecture**: Detailed system requirements and design
+- **Data Structures**: JSON schemas for experiment specification and results
 
-**2.3.2 Interpretable Relationships**
-- Provide derivation explanations for mathematical relationships
-- Show logical chains connecting observations to conclusions
-- Identify key variables and their roles in discovered relationships
-- Explain confidence levels and uncertainty bounds
+### 🚧 In Development
+- **Model Architecture**: Multi-head neural network implementation
+- **Laboratory Integration**: Interfaces for automated equipment control
+- **Discovery Engine**: Core algorithms for hypothesis generation and testing
 
-**2.3.3 Contextual Knowledge**
-- Map discovered truths to their applicable contexts
-- Identify boundary conditions where relationships break down
-- Maintain hierarchical organization of context-dependent knowledge
+### 🔮 Future Development
+- **Multi-Organism Systems**: Extend to tissue and organ-level phenomena
+- **Temporal Dynamics**: Study evolutionary processes and biological rhythms
+- **Cross-Disciplinary Integration**: Connect with computational chemistry and systems biology
 
-## 3. Multi-Head Architecture Requirements
+## System Capabilities
 
-### 3.1 Proposal Generation Head
-- Generate novel hypotheses based on current knowledge state
-- Prioritize hypotheses based on scientific interest and testability
-- Integrate information from multiple biological scales and timeframes
+The Model addresses several limitations in current experimental biology workflows:
 
-### 3.2 Methodology Planning Head
-- Design experimental protocols to test specific hypotheses
-- Optimize resource allocation and experimental efficiency
-- Account for equipment capabilities and limitations
-- Plan multi-step experimental campaigns
+1. **Automated hypothesis generation** based on comprehensive analysis of experimental data
+2. **Experimental optimization** through systematic parameter exploration
+3. **Context-dependent discovery** via systematic boundary condition testing
+4. **Continuous experimentation** without manual intervention between experimental cycles
 
-### 3.3 Falsification Head
-- Design "tactical attacks" to test established discoveries
-- Generate adversarial experiments specifically aimed at breaking known rules
-- Plan systematic validation across different contexts and scales
-- Identify potential confounding factors and alternative explanations
+The system is designed to operate continuously, generating new experimental hypotheses and sample specifications based on accumulated experimental evidence.
 
-### 3.4 Multi-Scale Integration Head
-- Track relationships between molecular, cellular, tissue, and organism levels
-- Identify scale-dependent phenomena and their interactions
-- Manage information flow between different biological scales
+## Technical Specifications
 
-### 3.5 Conceptual Framework Head
-- Maintain and update overarching theoretical frameworks
-- Integrate new discoveries into existing knowledge structures
-- Identify paradigm shifts and fundamental principle changes
-- Manage conceptual coherence across discoveries
+### Laboratory Equipment Integration
+- Automated liquid handling systems
+- High-content imaging and microscopy
+- Robotic sample manipulation
+- Specialized analytical instruments (qPCR, flow cytometry, mass spectrometry)
 
-### 3.6 Context Management Head
-- Map discoveries to their applicable contexts
-- Identify context boundaries and transition zones
-- Maintain hierarchical context relationships
-- Track context-dependent validity of biological rules
+### Data Management
+- Multi-modal experimental data handling
+- Complete experimental provenance tracking
+- Long-term discovery history storage
+- Collaborative data sharing capabilities
 
-## 4. Validation and Self-Falsification Requirements
+### Performance Metrics
+- **Novelty**: Discovery of previously unknown phenomena
+- **Reproducibility**: Consistency across independent validations
+- **Generalizability**: Applicability across different contexts
+- **Scientific Impact**: Advancement of biological understanding
 
-### 4.1 Multi-Level Testing Strategy
-- **Molecular Level**: Validate discoveries using biochemical assays, molecular perturbations
-- **Cellular Level**: Test across different cell types, conditions, and states
-- **Population Level**: Verify patterns in cell populations and colonies
-- **Temporal Level**: Validate across different time scales and developmental stages
+### Ethical Framework
+- Operates within established research ethics guidelines
+- Minimizes use of experimental resources
+- Considers long-term implications of discoveries
+- Maintains human oversight and collaboration capabilities
 
-### 4.2 Tactical Attack Methods
-- Design experiments specifically to challenge established discoveries
-- Test edge cases and boundary conditions
-- Apply perturbations that should break discovered relationships if they are incomplete
-- Cross-validate findings using orthogonal experimental approaches
+---
 
-### 4.3 Context Discovery Process
-- Systematically explore the boundaries of rule applicability
-- Map the parameter space where discoveries hold true
-- Identify transition zones where rules break down
-- Characterize context-dependent modifications of discovered relationships
+The Model system implements an active learning approach to biological discovery, combining computational analysis with automated experimental design. The system generates structured experimental specifications (sample_spec) that serve as inputs to automated laboratory systems, creating a closed-loop discovery pipeline for cellular biology research.
 
-### 4.4 Truth Stability Assessment
-- Track consistency of discoveries across multiple independent validations
-- Monitor rule modifications as new contexts are explored
-- Assess robustness of discoveries to experimental noise and variation
-- Evaluate reproducibility across different experimental setups
-
-## 5. Integration Requirements
-
-### 5.1 Laboratory Equipment Interface
-- Interface with automated liquid handling systems
-- Control high-content imaging and microscopy systems
-- Coordinate robotic systems for sample manipulation
-- Integrate with specialized analytical instruments (SPR, PCR, plate readers, spectrophotometers)
-
-### 5.2 Data Management
-- Handle multi-modal experimental data (imaging, spectroscopy, molecular assays)
-- Maintain experimental provenance and metadata
-- Support long-term storage and retrieval of discovery history
-- Enable data sharing and external validation
-
-### 5.3 Human Interaction
-- Provide interpretable explanations of discoveries and reasoning
-- Accept human feedback and incorporate domain expertise
-- Support collaborative hypothesis development
-- Enable human oversight of experimental design and execution
-
-## 6. Performance Requirements
-
-### 6.1 Discovery Quality Metrics
-- **Novelty**: Ability to discover previously unknown phenomena
-- **Reproducibility**: Consistency of discoveries across independent validations
-- **Generalizability**: Applicability of discoveries across different contexts
-- **Interpretability**: Clarity and understandability of discovered relationships
-
-### 6.2 System Efficiency
-- Optimize experimental resource utilization
-- Minimize time to discovery through intelligent experiment design
-- Balance exploration of new phenomena with validation of existing discoveries
-- Efficient updating of knowledge structures as new information becomes available
-
-### 6.3 Scientific Rigor
-- Maintain appropriate statistical confidence levels
-- Control for confounding factors and alternative explanations  
-- Ensure experimental designs meet scientific standards
-- Provide uncertainty quantification for all discoveries
-
-## 7. Constraints and Limitations
-
-### 7.1 Ethical Constraints
-- Operate within established ethical guidelines for biological research
-- Minimize use of experimental resources and biological materials
-- Consider long-term implications of discoveries and their applications
-
-### 7.2 Technical Limitations
-- Work within the capabilities of available laboratory equipment
-- Account for experimental noise, measurement limitations, and systematic errors
-- Operate under computational resource constraints
-- Handle incomplete or ambiguous experimental data
-
-### 7.3 Biological Constraints
-- Respect fundamental biological principles and conservation laws
-- Account for stochastic nature of biological processes
-- Consider evolutionary and ecological contexts of discoveries
-- Recognize limits of reductionist approaches to complex biological systems
-
-## 8. Success Criteria
-
-### 8.1 Primary Success Indicators
-- **Discovery of Novel Phenomena**: Identification of previously unknown cellular behaviors or mechanisms that are subsequently validated by independent research
-- **Robust Rule Discovery**: Establishment of biological rules that survive systematic falsification attempts across multiple contexts
-- **Predictive Accuracy**: Demonstrated ability to make accurate predictions about cellular behavior in untested conditions
-- **Scientific Impact**: Generation of discoveries that advance understanding in cellular biology and related fields
-
-### 8.2 Secondary Success Indicators
-- **Experimental Efficiency**: Reduction in time and resources required for biological discoveries
-- **Knowledge Integration**: Successful synthesis of discoveries across multiple biological scales and contexts
-- **Human Collaboration**: Effective partnership with human researchers in discovery processes
-- **System Adaptability**: Ability to extend methodology to new biological questions and domains
-
-## 9. Future Extensions
-
-### 9.1 Multi-Organism Systems
-- Extend methodology to study interactions between different cell types and organisms
-- Investigate tissue-level and organ-level phenomena
-- Apply to multicellular development and differentiation processes
-
-### 9.2 Temporal Dynamics
-- Develop capabilities for studying long-term evolutionary processes
-- Investigate circadian and other biological rhythms
-- Study aging and degenerative processes
-
-### 9.3 Integration with Other Disciplines
-- Interface with computational chemistry for molecular-level understanding
-- Connect with systems biology and network analysis approaches
-- Integrate with medical and therapeutic research applications
+*Current implementation status: The sample specification schema and core architectural design are complete. Integration with laboratory automation systems and the multi-head neural network implementation are in development.*
