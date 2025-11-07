@@ -8,12 +8,14 @@ facilities communicating in a distributed workflow system.
 
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.gridspec as gridspec
 import networkx as nx
 import numpy as np
 from typing import Dict, List, Tuple, Set
 from dataclasses import dataclass
 from enum import Enum
 import random
+from datetime import datetime
 
 
 class NodeType(Enum):
@@ -153,11 +155,20 @@ class WorkflowAnimator:
         self.active_edges: Set[Tuple[str, str]] = set()
         self.workflow_sequences = []
         self.current_frame = 0
+        self.action_history = []
+        self.max_history = 10
 
-        # Setup figure
-        self.fig, self.ax = plt.subplots(figsize=(16, 12))
+        # Setup figure with two panels
+        self.fig = plt.figure(figsize=(20, 12))
         self.fig.patch.set_facecolor('#1a1a1a')
-        self.ax.set_facecolor('#1a1a1a')
+
+        # Create grid: network on left (75%), action log on right (25%)
+        gs = gridspec.GridSpec(1, 2, width_ratios=[3, 1], figure=self.fig)
+        self.ax_network = self.fig.add_subplot(gs[0])
+        self.ax_log = self.fig.add_subplot(gs[1])
+
+        self.ax_network.set_facecolor('#1a1a1a')
+        self.ax_log.set_facecolor('#0d0d0d')
 
     def create_workflow_sequence(self) -> List[Dict]:
         """
@@ -185,15 +196,45 @@ class WorkflowAnimator:
             facility = mic.split('_microscope_')[0]
             storage = f"{facility}_storage"
             hpc = f"{facility}_hpc"
+            analysis = f"{facility}_analysis"
 
             if storage in self.graph and hpc in self.graph:
                 sequences.extend([
-                    {'nodes': [mic], 'edges': [], 'title': 'Microscope acquiring data'},
-                    {'nodes': [mic, storage], 'edges': [(mic, f"{facility}_hub"), (f"{facility}_hub", storage)],
-                     'title': 'Transferring to storage'},
-                    {'nodes': [storage, hpc], 'edges': [(storage, f"{facility}_hub"), (f"{facility}_hub", hpc)],
-                     'title': 'HPC processing data'},
+                    {
+                        'nodes': [mic],
+                        'edges': [],
+                        'title': f'{facility} - Data Acquisition',
+                        'description': f'Microscope acquiring high-resolution images',
+                        'action': 'ACQUIRE',
+                        'details': '2048x2048 px, 16-bit, 4 channels'
+                    },
+                    {
+                        'nodes': [mic, storage],
+                        'edges': [(mic, f"{facility}_hub"), (f"{facility}_hub", storage)],
+                        'title': f'{facility} - Data Transfer',
+                        'description': f'Transferring 2.5 GB to storage',
+                        'action': 'TRANSFER',
+                        'details': f'{mic} → {storage}'
+                    },
+                    {
+                        'nodes': [storage, hpc],
+                        'edges': [(storage, f"{facility}_hub"), (f"{facility}_hub", hpc)],
+                        'title': f'{facility} - HPC Processing',
+                        'description': 'Running image segmentation pipeline',
+                        'action': 'COMPUTE',
+                        'details': 'Estimated time: 5 minutes'
+                    },
                 ])
+
+                if analysis in self.graph:
+                    sequences.append({
+                        'nodes': [hpc, analysis],
+                        'edges': [(hpc, f"{facility}_hub"), (f"{facility}_hub", analysis)],
+                        'title': f'{facility} - Analysis',
+                        'description': 'Extracting cellular features',
+                        'action': 'ANALYZE',
+                        'details': 'Cell count, morphology, intensity'
+                    })
 
         # Workflow 2: Cross-facility collaboration
         if len(hubs) >= 2:
@@ -202,44 +243,252 @@ class WorkflowAnimator:
             facility2 = hub2.replace('_hub', '')
 
             mic1 = f"{facility1}_microscope_1"
-            mic2 = f"{facility2}_microscope_1"
+            storage2 = f"{facility2}_storage"
 
-            if mic1 in self.graph and mic2 in self.graph:
+            if mic1 in self.graph and storage2 in self.graph:
                 sequences.extend([
-                    {'nodes': [mic1], 'edges': [], 'title': f'Data from {facility1}'},
-                    {'nodes': [mic1, hub1], 'edges': [(mic1, hub1)], 'title': 'Sending to facility hub'},
-                    {'nodes': [hub1, hub2], 'edges': [(hub1, hub2)], 'title': 'Cross-facility transfer'},
-                    {'nodes': [hub2, mic2], 'edges': [(hub2, mic2)], 'title': f'Coordinating with {facility2}'},
+                    {
+                        'nodes': [mic1],
+                        'edges': [],
+                        'title': f'Cross-Facility - Acquisition',
+                        'description': f'{facility1} acquiring data for {facility2}',
+                        'action': 'ACQUIRE',
+                        'details': 'Coordinated experiment'
+                    },
+                    {
+                        'nodes': [mic1, hub1],
+                        'edges': [(mic1, hub1)],
+                        'title': f'Local Hub - {facility1}',
+                        'description': 'Data ready for inter-facility transfer',
+                        'action': 'STAGE',
+                        'details': 'Preparing for network transfer'
+                    },
+                    {
+                        'nodes': [hub1, hub2],
+                        'edges': [(hub1, hub2)],
+                        'title': 'Inter-Facility Transfer',
+                        'description': f'{facility1} → {facility2}',
+                        'action': 'TRANSFER',
+                        'details': 'Secure high-bandwidth link'
+                    },
+                    {
+                        'nodes': [hub2, storage2],
+                        'edges': [(hub2, storage2)],
+                        'title': f'{facility2} - Receiving Data',
+                        'description': 'Storing shared experimental data',
+                        'action': 'STORE',
+                        'details': f'Replication complete'
+                    },
                 ])
 
         # Workflow 3: Distributed HPC processing
         if len(hpcs) >= 2:
             hpc1, hpc2 = random.sample(hpcs, 2)
+            facility1 = hpc1.replace('_hpc', '')
+            facility2 = hpc2.replace('_hpc', '')
+
             sequences.extend([
-                {'nodes': [hpc1], 'edges': [], 'title': 'HPC 1 processing'},
-                {'nodes': [hpc1, hpc2], 'edges': [], 'title': 'Distributed computation'},
+                {
+                    'nodes': [hpc1],
+                    'edges': [],
+                    'title': 'Distributed Computation - Part 1',
+                    'description': f'{facility1} HPC processing dataset chunk 1',
+                    'action': 'COMPUTE',
+                    'details': '512 CPU cores active'
+                },
+                {
+                    'nodes': [hpc1, hpc2],
+                    'edges': [],
+                    'title': 'Distributed Computation - Part 2',
+                    'description': f'Parallel processing across {facility1} & {facility2}',
+                    'action': 'COMPUTE',
+                    'details': 'Combined 1024 cores'
+                },
+                {
+                    'nodes': [hpc1, hpc2],
+                    'edges': [],
+                    'title': 'Synchronizing Results',
+                    'description': 'Merging distributed computation results',
+                    'action': 'SYNC',
+                    'details': 'Aggregating outputs'
+                },
             ])
 
-        # Add some pause frames
-        sequences.append({'nodes': [], 'edges': [], 'title': 'Workflow complete'})
+        # Add completion frame
+        sequences.append({
+            'nodes': [],
+            'edges': [],
+            'title': 'Workflow Complete',
+            'description': 'All tasks completed successfully',
+            'action': 'DONE',
+            'details': 'Ready for next workflow'
+        })
 
         return sequences
 
+    def draw_action_log(self, current_step: Dict, upcoming_steps: List[Dict]):
+        """Draw the action log panel showing current and upcoming actions."""
+        self.ax_log.clear()
+        self.ax_log.set_facecolor('#0d0d0d')
+        self.ax_log.axis('off')
+
+        y_position = 0.95
+
+        # Title
+        self.ax_log.text(0.5, y_position, 'WORKFLOW LOG',
+                        transform=self.ax_log.transAxes,
+                        fontsize=14, fontweight='bold', color='#FFD700',
+                        ha='center', va='top')
+        y_position -= 0.08
+
+        # Current action section
+        self.ax_log.text(0.05, y_position, '▶ CURRENT ACTION',
+                        transform=self.ax_log.transAxes,
+                        fontsize=11, fontweight='bold', color='#4CAF50',
+                        ha='left', va='top')
+        y_position -= 0.05
+
+        # Action type badge
+        action_colors = {
+            'ACQUIRE': '#4CAF50',
+            'TRANSFER': '#2196F3',
+            'COMPUTE': '#FF9800',
+            'ANALYZE': '#9C27B0',
+            'STORE': '#FF9800',
+            'STAGE': '#FFD700',
+            'SYNC': '#00BCD4',
+            'DONE': '#888888'
+        }
+
+        action = current_step.get('action', 'UNKNOWN')
+        action_color = action_colors.get(action, '#FFFFFF')
+
+        # Action badge
+        bbox_props = dict(boxstyle='round,pad=0.3', facecolor=action_color, alpha=0.8)
+        self.ax_log.text(0.05, y_position, f' {action} ',
+                        transform=self.ax_log.transAxes,
+                        fontsize=9, fontweight='bold', color='white',
+                        ha='left', va='top', bbox=bbox_props)
+        y_position -= 0.05
+
+        # Description
+        description = current_step.get('description', '')
+        # Word wrap for long descriptions
+        words = description.split()
+        lines = []
+        current_line = []
+        for word in words:
+            current_line.append(word)
+            if len(' '.join(current_line)) > 30:
+                lines.append(' '.join(current_line[:-1]))
+                current_line = [word]
+        if current_line:
+            lines.append(' '.join(current_line))
+
+        for line in lines:
+            self.ax_log.text(0.05, y_position, line,
+                            transform=self.ax_log.transAxes,
+                            fontsize=9, color='white',
+                            ha='left', va='top')
+            y_position -= 0.04
+
+        # Details
+        details = current_step.get('details', '')
+        self.ax_log.text(0.05, y_position, f'• {details}',
+                        transform=self.ax_log.transAxes,
+                        fontsize=8, color='#AAAAAA', style='italic',
+                        ha='left', va='top')
+        y_position -= 0.08
+
+        # Separator
+        self.ax_log.axhline(y=y_position, xmin=0.05, xmax=0.95,
+                           transform=self.ax_log.transAxes,
+                           color='#333333', linewidth=1)
+        y_position -= 0.05
+
+        # Upcoming actions
+        self.ax_log.text(0.05, y_position, '⏭ UPCOMING',
+                        transform=self.ax_log.transAxes,
+                        fontsize=11, fontweight='bold', color='#888888',
+                        ha='left', va='top')
+        y_position -= 0.05
+
+        # Show next few upcoming actions
+        for i, step in enumerate(upcoming_steps[:5]):
+            if y_position < 0.15:
+                break
+
+            action = step.get('action', 'UNKNOWN')
+            action_color = action_colors.get(action, '#666666')
+            title = step.get('title', 'Unknown')
+
+            # Truncate long titles
+            if len(title) > 35:
+                title = title[:32] + '...'
+
+            # Small action badge
+            self.ax_log.text(0.05, y_position, f'{i+1}.',
+                            transform=self.ax_log.transAxes,
+                            fontsize=8, color='#666666',
+                            ha='left', va='top')
+
+            self.ax_log.text(0.12, y_position, f'{action}',
+                            transform=self.ax_log.transAxes,
+                            fontsize=7, color=action_color, fontweight='bold',
+                            ha='left', va='top')
+
+            self.ax_log.text(0.05, y_position - 0.03, title,
+                            transform=self.ax_log.transAxes,
+                            fontsize=7, color='#999999',
+                            ha='left', va='top')
+            y_position -= 0.08
+
+        # Recent history section
+        y_position = 0.30
+        self.ax_log.axhline(y=y_position, xmin=0.05, xmax=0.95,
+                           transform=self.ax_log.transAxes,
+                           color='#333333', linewidth=1)
+        y_position -= 0.03
+
+        self.ax_log.text(0.05, y_position, '✓ COMPLETED',
+                        transform=self.ax_log.transAxes,
+                        fontsize=11, fontweight='bold', color='#888888',
+                        ha='left', va='top')
+        y_position -= 0.05
+
+        # Show recent history
+        for i, step in enumerate(self.action_history[-5:]):
+            if y_position < 0.05:
+                break
+
+            action = step.get('action', 'UNKNOWN')
+            title = step.get('title', 'Unknown')
+
+            # Truncate long titles
+            if len(title) > 35:
+                title = title[:32] + '...'
+
+            self.ax_log.text(0.05, y_position, f'✓ {title}',
+                            transform=self.ax_log.transAxes,
+                            fontsize=7, color='#555555',
+                            ha='left', va='top')
+            y_position -= 0.04
+
     def draw_network(self, active_nodes: Set[str], active_edges: Set[Tuple], title: str = ''):
         """Draw the network with highlighted active nodes and edges."""
-        self.ax.clear()
-        self.ax.set_facecolor('#1a1a1a')
-        self.ax.axis('off')
+        self.ax_network.clear()
+        self.ax_network.set_facecolor('#1a1a1a')
+        self.ax_network.axis('off')
 
         # Draw edges (inactive)
         inactive_edges = [(u, v) for u, v in self.graph.edges() if (u, v) not in active_edges and (v, u) not in active_edges]
         nx.draw_networkx_edges(self.graph, self.pos, edgelist=inactive_edges,
-                              edge_color='#444444', width=1.5, alpha=0.3, ax=self.ax)
+                              edge_color='#444444', width=1.5, alpha=0.3, ax=self.ax_network)
 
         # Draw active edges with glow effect
         if active_edges:
             nx.draw_networkx_edges(self.graph, self.pos, edgelist=list(active_edges),
-                                  edge_color='#FFD700', width=4, alpha=0.9, ax=self.ax)
+                                  edge_color='#FFD700', width=4, alpha=0.9, ax=self.ax_network)
 
         # Draw nodes by type
         for node_type, style in NODE_STYLES.items():
@@ -254,29 +503,29 @@ class WorkflowAnimator:
             if inactive:
                 nx.draw_networkx_nodes(self.graph, self.pos, nodelist=inactive,
                                       node_color=style.color, node_shape=style.shape,
-                                      node_size=style.size, alpha=0.4, ax=self.ax)
+                                      node_size=style.size, alpha=0.4, ax=self.ax_network)
 
             # Draw active nodes with glow
             if active:
                 # Outer glow
                 nx.draw_networkx_nodes(self.graph, self.pos, nodelist=active,
                                       node_color='#FFFFFF', node_shape=style.shape,
-                                      node_size=style.size * 1.5, alpha=0.3, ax=self.ax)
+                                      node_size=style.size * 1.5, alpha=0.3, ax=self.ax_network)
                 # Main node
                 nx.draw_networkx_nodes(self.graph, self.pos, nodelist=active,
                                       node_color=style.color, node_shape=style.shape,
-                                      node_size=style.size, alpha=1.0, ax=self.ax,
+                                      node_size=style.size, alpha=1.0, ax=self.ax_network,
                                       edgecolors='#FFFFFF', linewidths=3)
 
         # Draw labels for active nodes
         if active_nodes:
             active_labels = {n: n.split('_')[-1] if '_' in n else n for n in active_nodes}
             nx.draw_networkx_labels(self.graph, self.pos, labels=active_labels,
-                                   font_size=8, font_color='white', ax=self.ax)
+                                   font_size=8, font_color='white', ax=self.ax_network)
 
         # Add title
         if title:
-            self.ax.text(0.5, 0.98, title, transform=self.ax.transAxes,
+            self.ax_network.text(0.5, 0.98, title, transform=self.ax_network.transAxes,
                         fontsize=16, color='white', ha='center', va='top',
                         bbox=dict(boxstyle='round', facecolor='#333333', alpha=0.8))
 
@@ -286,13 +535,13 @@ class WorkflowAnimator:
             legend_elements.append(plt.scatter([], [], c=style.color, marker=style.shape,
                                               s=100, label=style.label, edgecolors='white'))
 
-        self.ax.legend(handles=legend_elements, loc='upper left',
+        self.ax_network.legend(handles=legend_elements, loc='upper left',
                       framealpha=0.8, facecolor='#333333', edgecolor='white',
                       labelcolor='white', fontsize=10)
 
         # Add frame counter
-        self.ax.text(0.02, 0.02, f'Frame: {self.current_frame}',
-                    transform=self.ax.transAxes, fontsize=10,
+        self.ax_network.text(0.02, 0.02, f'Frame: {self.current_frame}',
+                    transform=self.ax_network.transAxes, fontsize=10,
                     color='#888888', ha='left', va='bottom')
 
     def animate_frame(self, frame):
@@ -308,10 +557,28 @@ class WorkflowAnimator:
 
         # If we've completed a cycle, generate new workflow
         if step_idx == 0 and frame > 0:
+            # Add the completed workflow to history before generating new one
+            if self.workflow_sequences:
+                self.action_history.extend(self.workflow_sequences)
+                # Keep only recent history
+                self.action_history = self.action_history[-self.max_history:]
+
             self.workflow_sequences = self.create_workflow_sequence()
             step = self.workflow_sequences[0]
 
-        self.draw_network(set(step['nodes']), set(step['edges']), step['title'])
+        # Add previous step to history if moving to new step
+        if step_idx > 0:
+            prev_step = self.workflow_sequences[step_idx - 1]
+            if not self.action_history or self.action_history[-1] != prev_step:
+                self.action_history.append(prev_step)
+                self.action_history = self.action_history[-self.max_history:]
+
+        # Get upcoming steps
+        upcoming = self.workflow_sequences[step_idx + 1:] if step_idx + 1 < len(self.workflow_sequences) else []
+
+        # Draw both panels
+        self.draw_network(set(step['nodes']), set(step['edges']), step.get('title', ''))
+        self.draw_action_log(step, upcoming)
 
     def run(self, frames=200, interval=800, save_gif=False, filename='workflow_animation.gif'):
         """Run the animation."""
@@ -325,7 +592,8 @@ class WorkflowAnimator:
             anim.save(filename, writer=writer)
             print(f"Animation saved!")
 
-        plt.tight_layout()
+        plt.tight_layout(pad=1.0)
+        plt.subplots_adjust(wspace=0.05)
         plt.show()
 
         return anim

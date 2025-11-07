@@ -1,6 +1,6 @@
 # Distributed Scientific Workflow Animation
 
-This animation visualizes a distributed network of scientific resources including microscopes, HPC clusters, storage systems, and analysis nodes across multiple facilities.
+This animation visualizes a distributed network of scientific resources including microscopes, HPC clusters, storage systems, and analysis nodes across multiple facilities, with a real-time action log showing current, upcoming, and completed workflow steps.
 
 ## Features
 
@@ -21,6 +21,13 @@ This animation visualizes a distributed network of scientific resources includin
   - Nodes "light up" when active with glow effects
   - Active connections highlighted in gold
   - Smooth animations showing data flow through the network
+
+- **Action Log Panel:**
+  - **Current Action**: Shows what's happening right now with detailed descriptions
+  - **Upcoming Actions**: Preview of the next 5 workflow steps
+  - **Completed Actions**: History of recently completed tasks
+  - Color-coded action types (ACQUIRE, TRANSFER, COMPUTE, ANALYZE, etc.)
+  - Real-time updates synchronized with network visualization
 
 ## Installation
 
