@@ -32,6 +32,7 @@ This will open an interactive window showing:
 - **Orange diamonds** = Storage systems
 - **Purple triangles** = Analysis nodes
 - **Red hexagons** = Facility coordination hubs
+- **Cyan stars** = Researchers (e.g., Ryan at Janelia)
 - **Gold lines** = Active data connections
 
 #### Action Log Panel (Right)
@@ -59,11 +60,15 @@ The animation uses different action types, each with its own color:
 - **STORE** (Orange) - Storage operations
 - **STAGE** (Gold) - Preparing for transfer
 - **SYNC** (Cyan) - Synchronizing distributed results
+- **PREPARE** (Cyan) - Sample preparation by researcher
+- **MOUNT** (Green) - Mounting sample on microscope
+- **HYPOTHESIS** (Pink) - AI hypothesis generation
+- **REVIEW** (Purple) - Human review and feedback
 - **DONE** (Gray) - Workflow complete
 
 ## Example Workflows
 
-The animation demonstrates three types of distributed workflows:
+The animation demonstrates four types of distributed workflows:
 
 ### 1. Local Processing
 ```
@@ -82,6 +87,21 @@ Data acquired at one facility, transferred to another for storage/processing
 HPC Cluster 1 + HPC Cluster 2 (parallel) → Sync Results
 ```
 Large computation split across multiple HPC resources
+
+### 4. Active Learning Loop (Human-in-the-Loop)
+```
+Ryan prepares C. elegans sample → Microscope acquires data →
+Remote analysis → AI generates hypothesis → Results to Ryan →
+Ryan reviews and tweaks → Second iteration
+```
+Demonstrates the complete active learning discovery cycle where:
+- Ryan (researcher at Janelia) mounts C. elegans samples
+- Data is acquired and analyzed (possibly at remote facility)
+- AI formulates hypotheses from the data
+- Ryan receives results and refines the experiment
+- Iterative cycle continues for scientific discovery
+
+This workflow showcases the human-AI collaboration in the discovery process!
 
 ## Customization
 

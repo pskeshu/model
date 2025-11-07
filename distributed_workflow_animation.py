@@ -25,6 +25,7 @@ class NodeType(Enum):
     STORAGE = "storage"
     ANALYSIS = "analysis"
     FACILITY_HUB = "facility_hub"
+    RESEARCHER = "researcher"
 
 
 @dataclass
@@ -68,6 +69,12 @@ NODE_STYLES = {
         size=1000,
         label='Facility Hub'
     ),
+    NodeType.RESEARCHER: NodeStyle(
+        color='#00BCD4',  # Cyan
+        shape='*',         # Star
+        size=1000,
+        label='Researcher'
+    ),
 }
 
 
@@ -83,7 +90,8 @@ class DistributedWorkflowGraph:
                      num_microscopes: int = 3,
                      has_hpc: bool = True,
                      has_storage: bool = True,
-                     has_analysis: bool = True):
+                     has_analysis: bool = True,
+                     researchers: List[str] = None):
         """Add a complete facility with its resources."""
 
         facility_nodes = []
@@ -94,6 +102,15 @@ class DistributedWorkflowGraph:
         self.node_types[hub_id] = NodeType.FACILITY_HUB
         facility_nodes.append(hub_id)
 
+        # Add researchers if specified
+        if researchers:
+            for researcher_name in researchers:
+                researcher_id = f"{facility_name}_{researcher_name}"
+                self.graph.add_node(researcher_id)
+                self.node_types[researcher_id] = NodeType.RESEARCHER
+                self.graph.add_edge(hub_id, researcher_id)
+                facility_nodes.append(researcher_id)
+
         # Add microscopes
         for i in range(num_microscopes):
             microscope_id = f"{facility_name}_microscope_{i+1}"
@@ -101,6 +118,12 @@ class DistributedWorkflowGraph:
             self.node_types[microscope_id] = NodeType.MICROSCOPE
             self.graph.add_edge(hub_id, microscope_id)
             facility_nodes.append(microscope_id)
+
+            # Connect researchers to microscopes they work with
+            if researchers:
+                for researcher_name in researchers:
+                    researcher_id = f"{facility_name}_{researcher_name}"
+                    self.graph.add_edge(researcher_id, microscope_id)
 
         # Add HPC if available
         if has_hpc:
@@ -314,6 +337,123 @@ class WorkflowAnimator:
                 },
             ])
 
+        # Workflow 4: Active Learning Loop with Ryan (Human-in-the-loop)
+        researchers = [n for n, t in self.node_types.items() if t == NodeType.RESEARCHER]
+        ryan_nodes = [n for n in researchers if 'Ryan' in n or 'ryan' in n]
+
+        if ryan_nodes and microscopes and storages and analysis_nodes:
+            ryan = ryan_nodes[0]
+            facility = ryan.split('_')[0]  # e.g., "Janelia_Ryan" -> "Janelia"
+
+            # Find resources at Ryan's facility
+            ryan_microscope = f"{facility}_microscope_1"
+            ryan_storage = f"{facility}_storage"
+            ryan_hub = f"{facility}_hub"
+
+            # Find remote analysis (could be at another facility)
+            remote_analysis = None
+            for analysis in analysis_nodes:
+                if not analysis.startswith(facility):
+                    remote_analysis = analysis
+                    break
+            if not remote_analysis:
+                remote_analysis = analysis_nodes[0] if analysis_nodes else None
+
+            if ryan_microscope in self.graph and ryan_storage in self.graph and remote_analysis:
+                remote_facility = remote_analysis.split('_')[0]
+                remote_hub = f"{remote_facility}_hub"
+
+                sequences.extend([
+                    {
+                        'nodes': [ryan],
+                        'edges': [],
+                        'title': 'Active Learning: Sample Preparation',
+                        'description': 'Ryan preparing C. elegans sample at Janelia',
+                        'action': 'PREPARE',
+                        'details': 'Mounting worms on slide, optimizing conditions'
+                    },
+                    {
+                        'nodes': [ryan, ryan_microscope],
+                        'edges': [(ryan, ryan_microscope)],
+                        'title': 'Active Learning: Sample Mounting',
+                        'description': 'Ryan mounts C. elegans on microscope',
+                        'action': 'MOUNT',
+                        'details': 'Sample ready for imaging'
+                    },
+                    {
+                        'nodes': [ryan_microscope],
+                        'edges': [],
+                        'title': 'Active Learning: Data Acquisition',
+                        'description': 'Microscope imaging C. elegans neurons',
+                        'action': 'ACQUIRE',
+                        'details': 'Time-lapse: 100 frames, 10s intervals'
+                    },
+                    {
+                        'nodes': [ryan_microscope, ryan_storage],
+                        'edges': [(ryan_microscope, ryan_hub), (ryan_hub, ryan_storage)],
+                        'title': 'Active Learning: Data Storage',
+                        'description': 'Saving experimental data locally',
+                        'action': 'STORE',
+                        'details': '1.2 GB neuronal imaging data'
+                    },
+                    {
+                        'nodes': [ryan_storage, remote_analysis],
+                        'edges': [(ryan_storage, ryan_hub), (ryan_hub, remote_hub), (remote_hub, remote_analysis)],
+                        'title': 'Active Learning: Remote Analysis',
+                        'description': f'Sending data to {remote_facility} for analysis',
+                        'action': 'TRANSFER',
+                        'details': 'Cross-facility data transfer'
+                    },
+                    {
+                        'nodes': [remote_analysis],
+                        'edges': [],
+                        'title': 'Active Learning: Feature Extraction',
+                        'description': 'Analyzing neuronal activity patterns',
+                        'action': 'ANALYZE',
+                        'details': 'Detecting calcium transients, tracking neurons'
+                    },
+                    {
+                        'nodes': [remote_analysis],
+                        'edges': [],
+                        'title': 'Active Learning: Hypothesis Generation',
+                        'description': 'AI formulates new hypothesis from data',
+                        'action': 'HYPOTHESIS',
+                        'details': 'Hypothesis: Neuron AVA shows stress response'
+                    },
+                    {
+                        'nodes': [remote_analysis, ryan],
+                        'edges': [(remote_analysis, remote_hub), (remote_hub, ryan_hub), (ryan_hub, ryan)],
+                        'title': 'Active Learning: Results to Ryan',
+                        'description': 'Sending analysis results and hypothesis to Ryan',
+                        'action': 'TRANSFER',
+                        'details': 'Hypothesis + supporting data visualization'
+                    },
+                    {
+                        'nodes': [ryan],
+                        'edges': [],
+                        'title': 'Active Learning: Human Feedback',
+                        'description': 'Ryan reviews results and tweaks experiment',
+                        'action': 'REVIEW',
+                        'details': 'Decision: Test with stressor compound'
+                    },
+                    {
+                        'nodes': [ryan, ryan_microscope],
+                        'edges': [(ryan, ryan_microscope)],
+                        'title': 'Active Learning: Iteration 2 - Sample Prep',
+                        'description': 'Ryan prepares refined experiment based on AI insight',
+                        'action': 'PREPARE',
+                        'details': 'Adding stressor, mounting new sample'
+                    },
+                    {
+                        'nodes': [ryan_microscope],
+                        'edges': [],
+                        'title': 'Active Learning: Iteration 2 - Imaging',
+                        'description': 'Acquiring data for hypothesis validation',
+                        'action': 'ACQUIRE',
+                        'details': 'Testing AVA stress response hypothesis'
+                    },
+                ])
+
         # Add completion frame
         sequences.append({
             'nodes': [],
@@ -357,7 +497,11 @@ class WorkflowAnimator:
             'STORE': '#FF9800',
             'STAGE': '#FFD700',
             'SYNC': '#00BCD4',
-            'DONE': '#888888'
+            'DONE': '#888888',
+            'PREPARE': '#00BCD4',
+            'MOUNT': '#4CAF50',
+            'HYPOTHESIS': '#E91E63',
+            'REVIEW': '#9C27B0'
         }
 
         action = current_step.get('action', 'UNKNOWN')
@@ -607,7 +751,9 @@ def create_example_network():
     workflow.add_facility("MIT", num_microscopes=4, has_hpc=True, has_storage=True, has_analysis=True)
     workflow.add_facility("Stanford", num_microscopes=3, has_hpc=True, has_storage=True, has_analysis=True)
     workflow.add_facility("Berkeley", num_microscopes=2, has_hpc=True, has_storage=True, has_analysis=False)
-    workflow.add_facility("Janelia", num_microscopes=5, has_hpc=True, has_storage=True, has_analysis=True)
+    # Janelia with Ryan - C. elegans researcher
+    workflow.add_facility("Janelia", num_microscopes=5, has_hpc=True, has_storage=True, has_analysis=True,
+                         researchers=["Ryan"])
     workflow.add_facility("EMBL", num_microscopes=3, has_hpc=False, has_storage=True, has_analysis=True)
 
     # Connect facilities
