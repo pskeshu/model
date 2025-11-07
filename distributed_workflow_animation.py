@@ -182,11 +182,11 @@ class WorkflowAnimator:
         self.max_history = 10
 
         # Setup figure with two panels
-        self.fig = plt.figure(figsize=(20, 12))
+        self.fig = plt.figure(figsize=(22, 13))  # Slightly larger for better text rendering
         self.fig.patch.set_facecolor('#1a1a1a')
 
-        # Create grid: network on left (75%), action log on right (25%)
-        gs = gridspec.GridSpec(1, 2, width_ratios=[3, 1], figure=self.fig)
+        # Create grid: network on left (70%), action log on right (30%)
+        gs = gridspec.GridSpec(1, 2, width_ratios=[7, 3], figure=self.fig)
         self.ax_network = self.fig.add_subplot(gs[0])
         self.ax_log = self.fig.add_subplot(gs[1])
 
@@ -477,7 +477,7 @@ class WorkflowAnimator:
         # Title
         self.ax_log.text(0.5, y_position, 'WORKFLOW TIMELINE',
                         transform=self.ax_log.transAxes,
-                        fontsize=14, fontweight='bold', color='#FFD700',
+                        fontsize=16, fontweight='bold', color='#FFD700',
                         ha='center', va='top')
         y_position -= 0.05
 
@@ -488,14 +488,14 @@ class WorkflowAnimator:
 
         self.ax_log.text(0.5, y_position, f'Step {current_step_num} of {total_steps}',
                         transform=self.ax_log.transAxes,
-                        fontsize=9, color='#AAAAAA',
+                        fontsize=11, color='#AAAAAA',
                         ha='center', va='top')
         y_position -= 0.03
 
         # Progress bar
         bar_width = 0.8
         bar_start = 0.1
-        bar_height = 0.015
+        bar_height = 0.02  # Slightly taller bar
 
         # Background bar
         self.ax_log.add_patch(plt.Rectangle((bar_start, y_position - bar_height),
@@ -529,14 +529,14 @@ class WorkflowAnimator:
 
         # === CURRENT ACTION (Prominent Card) ===
         card_top = y_position
-        card_height = 0.18
+        card_height = 0.20  # Slightly taller for readability
 
         # Draw card background
         self.ax_log.add_patch(plt.Rectangle((0.05, card_top - card_height),
                                             0.9, card_height,
                                             transform=self.ax_log.transAxes,
                                             facecolor='#1a1a1a', edgecolor='#FFD700',
-                                            linewidth=2, alpha=0.9))
+                                            linewidth=2.5, alpha=0.9))
 
         y_position -= 0.02
 
@@ -546,15 +546,15 @@ class WorkflowAnimator:
         # Action badge and title on same line
         self.ax_log.text(0.08, y_position, '● NOW',
                         transform=self.ax_log.transAxes,
-                        fontsize=10, fontweight='bold', color='#FFD700',
+                        fontsize=12, fontweight='bold', color='#FFD700',
                         ha='left', va='top')
 
-        bbox_props = dict(boxstyle='round,pad=0.3', facecolor=action_color, alpha=1.0)
-        self.ax_log.text(0.20, y_position, f' {action} ',
+        bbox_props = dict(boxstyle='round,pad=0.4', facecolor=action_color, alpha=1.0)
+        self.ax_log.text(0.22, y_position, f' {action} ',
                         transform=self.ax_log.transAxes,
-                        fontsize=8, fontweight='bold', color='white',
+                        fontsize=10, fontweight='bold', color='white',
                         ha='left', va='top', bbox=bbox_props)
-        y_position -= 0.045
+        y_position -= 0.05
 
         # Description
         description = current_step.get('description', '')
@@ -563,7 +563,7 @@ class WorkflowAnimator:
         current_line = []
         for word in words:
             current_line.append(word)
-            if len(' '.join(current_line)) > 28:
+            if len(' '.join(current_line)) > 25:  # Shorter lines for readability
                 lines.append(' '.join(current_line[:-1]))
                 current_line = [word]
         if current_line:
@@ -572,15 +572,15 @@ class WorkflowAnimator:
         for line in lines[:2]:  # Max 2 lines
             self.ax_log.text(0.08, y_position, line,
                             transform=self.ax_log.transAxes,
-                            fontsize=10, color='#FFFFFF', fontweight='bold',
+                            fontsize=11, color='#FFFFFF', fontweight='bold',
                             ha='left', va='top')
-            y_position -= 0.035
+            y_position -= 0.038
 
         # Details
         details = current_step.get('details', '')
         self.ax_log.text(0.08, y_position, f'{details}',
                         transform=self.ax_log.transAxes,
-                        fontsize=8, color='#AAAAAA', style='italic',
+                        fontsize=9, color='#AAAAAA', style='italic',
                         ha='left', va='top')
 
         y_position = card_top - card_height - 0.04
@@ -588,7 +588,7 @@ class WorkflowAnimator:
         # === UPCOMING TIMELINE ===
         self.ax_log.text(0.05, y_position, '▼ NEXT STEPS',
                         transform=self.ax_log.transAxes,
-                        fontsize=10, fontweight='bold', color='#888888',
+                        fontsize=11, fontweight='bold', color='#888888',
                         ha='left', va='top')
         y_position -= 0.04
 
@@ -598,7 +598,7 @@ class WorkflowAnimator:
 
         # Show next 3 upcoming actions in timeline format
         for i, step in enumerate(upcoming_steps[:3]):
-            if y_position < 0.40:
+            if y_position < 0.38:
                 break
 
             action = step.get('action', 'UNKNOWN')
@@ -606,26 +606,26 @@ class WorkflowAnimator:
             title = step.get('title', 'Unknown')
 
             # Truncate long titles
-            if len(title) > 32:
-                title = title[:29] + '...'
+            if len(title) > 28:
+                title = title[:25] + '...'
 
             # Timeline dot
             self.ax_log.plot([timeline_x], [y_position],
-                           'o', markersize=6, color='#555555',
+                           'o', markersize=7, color='#555555',
                            transform=self.ax_log.transAxes)
 
             # Action badge (compact)
-            self.ax_log.text(0.12, y_position + 0.005, f'{action}',
+            self.ax_log.text(0.14, y_position + 0.005, f'{action}',
                             transform=self.ax_log.transAxes,
-                            fontsize=7, color=action_color, fontweight='bold',
+                            fontsize=8, color=action_color, fontweight='bold',
                             ha='left', va='center')
 
             # Title
-            self.ax_log.text(0.12, y_position - 0.015, title,
+            self.ax_log.text(0.14, y_position - 0.018, title,
                             transform=self.ax_log.transAxes,
-                            fontsize=7, color='#AAAAAA',
+                            fontsize=8, color='#AAAAAA',
                             ha='left', va='top')
-            y_position -= 0.06
+            y_position -= 0.065
 
         # Timeline line connecting dots
         if len(upcoming_steps) > 0:
@@ -644,12 +644,12 @@ class WorkflowAnimator:
 
         self.ax_log.text(0.05, y_position, '▲ COMPLETED',
                         transform=self.ax_log.transAxes,
-                        fontsize=10, fontweight='bold', color='#555555',
+                        fontsize=11, fontweight='bold', color='#555555',
                         ha='left', va='top')
         y_position -= 0.04
 
         # Show recent history in reverse chronological order (most recent first)
-        recent_history = self.action_history[-6:][::-1]  # Last 6, reversed
+        recent_history = self.action_history[-5:][::-1]  # Last 5, reversed
 
         history_timeline_x = 0.08
         for i, step in enumerate(recent_history):
@@ -661,20 +661,20 @@ class WorkflowAnimator:
             title = step.get('title', 'Unknown')
 
             # Truncate long titles
-            if len(title) > 32:
-                title = title[:29] + '...'
+            if len(title) > 28:
+                title = title[:25] + '...'
 
             # Checkmark dot
             self.ax_log.plot([history_timeline_x], [y_position],
-                           'o', markersize=4, color='#2a5a2a',
+                           'o', markersize=5, color='#2a5a2a',
                            transform=self.ax_log.transAxes)
 
             # Compact display
-            self.ax_log.text(0.12, y_position + 0.002, f'✓ {title}',
+            self.ax_log.text(0.14, y_position + 0.002, f'✓ {title}',
                             transform=self.ax_log.transAxes,
-                            fontsize=7, color='#666666',
+                            fontsize=8, color='#666666',
                             ha='left', va='center')
-            y_position -= 0.035
+            y_position -= 0.038
 
     def draw_network(self, active_nodes: Set[str], active_edges: Set[Tuple], title: str = ''):
         """Draw the network with highlighted active nodes and edges."""
@@ -723,27 +723,30 @@ class WorkflowAnimator:
         if active_nodes:
             active_labels = {n: n.split('_')[-1] if '_' in n else n for n in active_nodes}
             nx.draw_networkx_labels(self.graph, self.pos, labels=active_labels,
-                                   font_size=8, font_color='white', ax=self.ax_network)
+                                   font_size=9, font_color='white', ax=self.ax_network,
+                                   font_weight='bold')
 
         # Add title
         if title:
             self.ax_network.text(0.5, 0.98, title, transform=self.ax_network.transAxes,
-                        fontsize=16, color='white', ha='center', va='top',
-                        bbox=dict(boxstyle='round', facecolor='#333333', alpha=0.8))
+                        fontsize=18, color='white', ha='center', va='top',
+                        bbox=dict(boxstyle='round', facecolor='#333333', alpha=0.8),
+                        fontweight='bold')
 
         # Add legend
         legend_elements = []
         for node_type, style in NODE_STYLES.items():
             legend_elements.append(plt.scatter([], [], c=style.color, marker=style.shape,
-                                              s=100, label=style.label, edgecolors='white'))
+                                              s=120, label=style.label, edgecolors='white',
+                                              linewidths=1.5))
 
         self.ax_network.legend(handles=legend_elements, loc='upper left',
-                      framealpha=0.8, facecolor='#333333', edgecolor='white',
-                      labelcolor='white', fontsize=10)
+                      framealpha=0.9, facecolor='#333333', edgecolor='white',
+                      labelcolor='white', fontsize=11)
 
         # Add frame counter
         self.ax_network.text(0.02, 0.02, f'Frame: {self.current_frame}',
-                    transform=self.ax_network.transAxes, fontsize=10,
+                    transform=self.ax_network.transAxes, fontsize=11,
                     color='#888888', ha='left', va='bottom')
 
     def animate_frame(self, frame):
