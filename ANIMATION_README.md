@@ -55,9 +55,50 @@ python distributed_workflow_animation.py
 
 This will display an interactive window showing the animated workflow. Close the window to exit.
 
+### Command-Line Options
+
+The script supports various command-line options for easy configuration:
+
+```bash
+# Display help and see all options
+python distributed_workflow_animation.py --help
+
+# Save as MP4 video (no GUI display)
+python distributed_workflow_animation.py --save-video
+
+# Save as animated GIF
+python distributed_workflow_animation.py --save-gif
+
+# Save both formats
+python distributed_workflow_animation.py --save-video --save-gif
+
+# Customize animation settings
+python distributed_workflow_animation.py --frames 300 --interval 1000
+
+# Custom filename
+python distributed_workflow_animation.py --save-video --filename my_workflow
+
+# Control frame rate explicitly
+python distributed_workflow_animation.py --save-video --fps 2
+```
+
 ### Export as Video or GIF
 
-**Save as MP4 video:**
+**Using command-line (recommended):**
+
+```bash
+# Save as MP4 video
+python distributed_workflow_animation.py --save-video
+```
+Creates `distributed_workflow.mp4` - best for presentations and sharing
+
+```bash
+# Save as animated GIF
+python distributed_workflow_animation.py --save-gif
+```
+Creates `distributed_workflow.gif` - good for documentation and web
+
+**Programmatically (if modifying code):**
 ```python
 animator.run(
     frames=200,
@@ -66,18 +107,6 @@ animator.run(
     filename='distributed_workflow'
 )
 ```
-Creates `distributed_workflow.mp4` - best for presentations and sharing
-
-**Save as animated GIF:**
-```python
-animator.run(
-    frames=200,
-    interval=1500,
-    save_gif=True,
-    filename='distributed_workflow'
-)
-```
-Creates `distributed_workflow.gif` - good for documentation and web
 
 **Requirements for Video Export:**
 Video export requires FFmpeg:

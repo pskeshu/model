@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from enum import Enum
 import random
 from datetime import datetime
+import argparse
 
 
 class NodeType(Enum):
@@ -224,12 +225,9 @@ class WorkflowAnimator:
         """
         Create a sequence of workflow steps showing distributed processing.
 
-        Example workflow:
-        1. Microscope captures data
-        2. Data sent to storage
-        3. HPC processes data
-        4. Analysis node generates results
-        5. Results shared across facilities
+        The story always starts with Ryan, the researcher, who has a scientific
+        question and wants to investigate it. This human-centered approach reflects
+        the reality of scientific discovery.
         """
         sequences = []
 
@@ -239,8 +237,151 @@ class WorkflowAnimator:
         storages = [n for n, t in self.node_types.items() if t == NodeType.STORAGE]
         analysis_nodes = [n for n, t in self.node_types.items() if t == NodeType.ANALYSIS]
         hubs = [n for n, t in self.node_types.items() if t == NodeType.FACILITY_HUB]
+        researchers = [n for n, t in self.node_types.items() if t == NodeType.RESEARCHER]
 
-        # Workflow 1: Local microscope to HPC processing
+        # PRIMARY WORKFLOW: Start with Ryan's scientific question (Human-in-the-loop)
+        # This is the core story - a researcher with curiosity driving discovery
+        ryan_nodes = [n for n in researchers if 'Ryan' in n or 'ryan' in n]
+
+        if ryan_nodes and microscopes and storages and analysis_nodes:
+            ryan = ryan_nodes[0]
+            facility = ryan.split('_')[0]  # e.g., "Janelia_Ryan" -> "Janelia"
+
+            # Find resources at Ryan's facility
+            ryan_microscope = f"{facility}_microscope_1"
+            ryan_storage = f"{facility}_storage"
+            ryan_hub = f"{facility}_hub"
+
+            # Find remote analysis (could be at another facility)
+            remote_analysis = None
+            for analysis in analysis_nodes:
+                if not analysis.startswith(facility):
+                    remote_analysis = analysis
+                    break
+            if not remote_analysis:
+                remote_analysis = analysis_nodes[0] if analysis_nodes else None
+
+            if ryan_microscope in self.graph and ryan_storage in self.graph and remote_analysis:
+                remote_facility = remote_analysis.split('_')[0]
+                remote_hub = f"{remote_facility}_hub"
+
+                sequences.extend([
+                    {
+                        'nodes': [ryan],
+                        'edges': [],
+                        'title': 'Scientific Question',
+                        'description': 'Ryan has a hypothesis about C. elegans stress response',
+                        'action': 'HYPOTHESIS',
+                        'details': 'Question: How do neurons respond to environmental stress?'
+                    },
+                    {
+                        'nodes': [ryan],
+                        'edges': [],
+                        'title': 'Experiment Design',
+                        'description': 'Ryan designs experiment to test hypothesis',
+                        'action': 'PREPARE',
+                        'details': 'Planning: Image AVA neurons under stress conditions'
+                    },
+                    {
+                        'nodes': [ryan],
+                        'edges': [],
+                        'title': 'Sample Preparation',
+                        'description': 'Ryan preparing C. elegans sample at Janelia',
+                        'action': 'PREPARE',
+                        'details': 'Mounting worms on slide, optimizing conditions'
+                    },
+                    {
+                        'nodes': [ryan, ryan_microscope],
+                        'edges': [(ryan, ryan_microscope)],
+                        'title': 'Sample Mounting',
+                        'description': 'Ryan mounts C. elegans on microscope',
+                        'action': 'MOUNT',
+                        'details': 'Sample ready for imaging'
+                    },
+                    {
+                        'nodes': [ryan_microscope],
+                        'edges': [],
+                        'title': 'Data Acquisition',
+                        'description': 'Microscope imaging C. elegans neurons',
+                        'action': 'ACQUIRE',
+                        'details': 'Time-lapse: 100 frames, 10s intervals'
+                    },
+                    {
+                        'nodes': [ryan_microscope, ryan_storage],
+                        'edges': [(ryan_microscope, ryan_hub), (ryan_hub, ryan_storage)],
+                        'title': 'Data Storage',
+                        'description': 'Saving experimental data locally',
+                        'action': 'STORE',
+                        'details': '1.2 GB neuronal imaging data'
+                    },
+                    {
+                        'nodes': [ryan_storage, remote_analysis],
+                        'edges': [(ryan_storage, ryan_hub), (ryan_hub, remote_hub), (remote_hub, remote_analysis)],
+                        'title': 'Remote Analysis',
+                        'description': f'Sending data to {remote_facility} for AI analysis',
+                        'action': 'TRANSFER',
+                        'details': 'Cross-facility data transfer'
+                    },
+                    {
+                        'nodes': [remote_analysis],
+                        'edges': [],
+                        'title': 'AI Feature Extraction',
+                        'description': 'Analyzing neuronal activity patterns',
+                        'action': 'ANALYZE',
+                        'details': 'Detecting calcium transients, tracking neurons'
+                    },
+                    {
+                        'nodes': [remote_analysis],
+                        'edges': [],
+                        'title': 'AI Hypothesis Generation',
+                        'description': 'AI discovers pattern in data',
+                        'action': 'HYPOTHESIS',
+                        'details': 'Finding: Neuron AVA shows elevated activity under stress'
+                    },
+                    {
+                        'nodes': [remote_analysis, ryan],
+                        'edges': [(remote_analysis, remote_hub), (remote_hub, ryan_hub), (ryan_hub, ryan)],
+                        'title': 'Results to Ryan',
+                        'description': 'Sending analysis results and AI insights to Ryan',
+                        'action': 'TRANSFER',
+                        'details': 'AI findings + supporting visualizations'
+                    },
+                    {
+                        'nodes': [ryan],
+                        'edges': [],
+                        'title': 'Human Review',
+                        'description': 'Ryan reviews AI findings and interprets results',
+                        'action': 'REVIEW',
+                        'details': 'Insight: This confirms mechanosensory pathway involvement'
+                    },
+                    {
+                        'nodes': [ryan],
+                        'edges': [],
+                        'title': 'Refining Hypothesis',
+                        'description': 'Ryan formulates refined hypothesis from AI insights',
+                        'action': 'HYPOTHESIS',
+                        'details': 'New question: Is this response specific to mechanical stress?'
+                    },
+                    {
+                        'nodes': [ryan, ryan_microscope],
+                        'edges': [(ryan, ryan_microscope)],
+                        'title': 'Iteration 2: Sample Prep',
+                        'description': 'Ryan prepares refined experiment based on insights',
+                        'action': 'PREPARE',
+                        'details': 'Testing mechanical vs chemical stress'
+                    },
+                    {
+                        'nodes': [ryan_microscope],
+                        'edges': [],
+                        'title': 'Iteration 2: Imaging',
+                        'description': 'Acquiring data to test refined hypothesis',
+                        'action': 'ACQUIRE',
+                        'details': 'Validating mechanosensory specificity'
+                    },
+                ])
+
+        # SECONDARY WORKFLOW: Automated distributed processing
+        # These show the infrastructure supporting Ryan's work
         if microscopes and hpcs and storages:
             mic = random.choice(microscopes)
             facility = mic.split('_microscope_')[0]
@@ -364,124 +505,7 @@ class WorkflowAnimator:
                 },
             ])
 
-        # Workflow 4: Active Learning Loop with Ryan (Human-in-the-loop)
-        researchers = [n for n, t in self.node_types.items() if t == NodeType.RESEARCHER]
-        ryan_nodes = [n for n in researchers if 'Ryan' in n or 'ryan' in n]
-
-        if ryan_nodes and microscopes and storages and analysis_nodes:
-            ryan = ryan_nodes[0]
-            facility = ryan.split('_')[0]  # e.g., "Janelia_Ryan" -> "Janelia"
-
-            # Find resources at Ryan's facility
-            ryan_microscope = f"{facility}_microscope_1"
-            ryan_storage = f"{facility}_storage"
-            ryan_hub = f"{facility}_hub"
-
-            # Find remote analysis (could be at another facility)
-            remote_analysis = None
-            for analysis in analysis_nodes:
-                if not analysis.startswith(facility):
-                    remote_analysis = analysis
-                    break
-            if not remote_analysis:
-                remote_analysis = analysis_nodes[0] if analysis_nodes else None
-
-            if ryan_microscope in self.graph and ryan_storage in self.graph and remote_analysis:
-                remote_facility = remote_analysis.split('_')[0]
-                remote_hub = f"{remote_facility}_hub"
-
-                sequences.extend([
-                    {
-                        'nodes': [ryan],
-                        'edges': [],
-                        'title': 'Active Learning: Sample Preparation',
-                        'description': 'Ryan preparing C. elegans sample at Janelia',
-                        'action': 'PREPARE',
-                        'details': 'Mounting worms on slide, optimizing conditions'
-                    },
-                    {
-                        'nodes': [ryan, ryan_microscope],
-                        'edges': [(ryan, ryan_microscope)],
-                        'title': 'Active Learning: Sample Mounting',
-                        'description': 'Ryan mounts C. elegans on microscope',
-                        'action': 'MOUNT',
-                        'details': 'Sample ready for imaging'
-                    },
-                    {
-                        'nodes': [ryan_microscope],
-                        'edges': [],
-                        'title': 'Active Learning: Data Acquisition',
-                        'description': 'Microscope imaging C. elegans neurons',
-                        'action': 'ACQUIRE',
-                        'details': 'Time-lapse: 100 frames, 10s intervals'
-                    },
-                    {
-                        'nodes': [ryan_microscope, ryan_storage],
-                        'edges': [(ryan_microscope, ryan_hub), (ryan_hub, ryan_storage)],
-                        'title': 'Active Learning: Data Storage',
-                        'description': 'Saving experimental data locally',
-                        'action': 'STORE',
-                        'details': '1.2 GB neuronal imaging data'
-                    },
-                    {
-                        'nodes': [ryan_storage, remote_analysis],
-                        'edges': [(ryan_storage, ryan_hub), (ryan_hub, remote_hub), (remote_hub, remote_analysis)],
-                        'title': 'Active Learning: Remote Analysis',
-                        'description': f'Sending data to {remote_facility} for analysis',
-                        'action': 'TRANSFER',
-                        'details': 'Cross-facility data transfer'
-                    },
-                    {
-                        'nodes': [remote_analysis],
-                        'edges': [],
-                        'title': 'Active Learning: Feature Extraction',
-                        'description': 'Analyzing neuronal activity patterns',
-                        'action': 'ANALYZE',
-                        'details': 'Detecting calcium transients, tracking neurons'
-                    },
-                    {
-                        'nodes': [remote_analysis],
-                        'edges': [],
-                        'title': 'Active Learning: Hypothesis Generation',
-                        'description': 'AI formulates new hypothesis from data',
-                        'action': 'HYPOTHESIS',
-                        'details': 'Hypothesis: Neuron AVA shows stress response'
-                    },
-                    {
-                        'nodes': [remote_analysis, ryan],
-                        'edges': [(remote_analysis, remote_hub), (remote_hub, ryan_hub), (ryan_hub, ryan)],
-                        'title': 'Active Learning: Results to Ryan',
-                        'description': 'Sending analysis results and hypothesis to Ryan',
-                        'action': 'TRANSFER',
-                        'details': 'Hypothesis + supporting data visualization'
-                    },
-                    {
-                        'nodes': [ryan],
-                        'edges': [],
-                        'title': 'Active Learning: Human Feedback',
-                        'description': 'Ryan reviews results and tweaks experiment',
-                        'action': 'REVIEW',
-                        'details': 'Decision: Test with stressor compound'
-                    },
-                    {
-                        'nodes': [ryan, ryan_microscope],
-                        'edges': [(ryan, ryan_microscope)],
-                        'title': 'Active Learning: Iteration 2 - Sample Prep',
-                        'description': 'Ryan prepares refined experiment based on AI insight',
-                        'action': 'PREPARE',
-                        'details': 'Adding stressor, mounting new sample'
-                    },
-                    {
-                        'nodes': [ryan_microscope],
-                        'edges': [],
-                        'title': 'Active Learning: Iteration 2 - Imaging',
-                        'description': 'Acquiring data for hypothesis validation',
-                        'action': 'ACQUIRE',
-                        'details': 'Testing AVA stress response hypothesis'
-                    },
-                ])
-
-        # Add completion frame
+        # Completion frame
         sequences.append({
             'nodes': [],
             'edges': [],
@@ -949,6 +973,36 @@ def create_example_network():
 
 def main():
     """Main entry point for the animation."""
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(
+        description='Distributed Scientific Workflow Animation',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s                              # Display animation interactively
+  %(prog)s --save-video                 # Save as MP4 video
+  %(prog)s --save-gif                   # Save as animated GIF
+  %(prog)s --save-video --save-gif      # Save both formats
+  %(prog)s --frames 300 --interval 1000 # Customize animation settings
+  %(prog)s --save-video --filename my_workflow  # Custom filename
+        """
+    )
+
+    parser.add_argument('--save-video', '--save-mp4', action='store_true',
+                       help='Save animation as MP4 video (requires FFmpeg)')
+    parser.add_argument('--save-gif', action='store_true',
+                       help='Save animation as animated GIF')
+    parser.add_argument('--frames', type=int, default=200,
+                       help='Number of animation frames (default: 200)')
+    parser.add_argument('--interval', type=int, default=1500,
+                       help='Milliseconds between frames (default: 1500)')
+    parser.add_argument('--filename', type=str, default='distributed_workflow',
+                       help='Base filename for saved output (default: distributed_workflow)')
+    parser.add_argument('--fps', type=float, default=None,
+                       help='Frames per second for video (default: calculated from interval)')
+
+    args = parser.parse_args()
+
     print("=== Distributed Scientific Workflow Animation ===\n")
     print("Creating network topology...")
 
@@ -962,19 +1016,24 @@ def main():
     # Create animator
     animator = WorkflowAnimator(workflow)
 
-    print("Starting animation...")
-    print("Close the window to exit.\n")
+    if args.save_video or args.save_gif:
+        if args.save_video:
+            print(f"Will save animation as video: {args.filename}.mp4")
+        if args.save_gif:
+            print(f"Will save animation as GIF: {args.filename}.gif")
+        print(f"Generating {args.frames} frames at {args.interval}ms intervals...\n")
+    else:
+        print("Starting animation...")
+        print("Close the window to exit.\n")
 
-    # Run animation
-    # To save as video: set save_video=True
-    # To save as GIF: set save_gif=True
-    # interval: milliseconds between frames (1500ms = 1.5 seconds per step)
+    # Run animation with command-line options
     animator.run(
-        frames=200,
-        interval=1500,
-        save_gif=False,      # Set to True to save as GIF
-        save_video=False,    # Set to True to save as MP4 video
-        filename='distributed_workflow'
+        frames=args.frames,
+        interval=args.interval,
+        save_gif=args.save_gif,
+        save_video=args.save_video,
+        filename=args.filename,
+        fps=args.fps
     )
 
 

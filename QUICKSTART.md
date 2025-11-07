@@ -16,11 +16,27 @@ pip install -r requirements.txt
 
 ### 2. Run the Animation
 
+**Interactive display:**
 ```bash
 python distributed_workflow_animation.py
 ```
 
-This will open an interactive window showing:
+**Save as video:**
+```bash
+python distributed_workflow_animation.py --save-video
+```
+
+**Save as GIF:**
+```bash
+python distributed_workflow_animation.py --save-gif
+```
+
+**View all options:**
+```bash
+python distributed_workflow_animation.py --help
+```
+
+The interactive window shows:
 - **Left panel**: Network graph with nodes lighting up during activity
 - **Right panel**: Action log showing current, upcoming, and completed tasks
 
@@ -129,7 +145,24 @@ workflow.add_facility("YourLab",
 
 ### Save as Video or GIF
 
-To save as MP4 video:
+**Using command-line (recommended):**
+
+```bash
+# Save as MP4 video
+python distributed_workflow_animation.py --save-video
+
+# Save as animated GIF
+python distributed_workflow_animation.py --save-gif
+
+# Save both formats
+python distributed_workflow_animation.py --save-video --save-gif
+
+# Custom settings
+python distributed_workflow_animation.py --save-video --frames 300 --interval 1000 --filename my_workflow
+```
+
+**Programmatically (if modifying the code):**
+
 ```python
 animator.run(
     frames=200,
@@ -138,18 +171,6 @@ animator.run(
     filename='my_workflow'
 )
 ```
-This creates `my_workflow.mp4`
-
-To save as animated GIF:
-```python
-animator.run(
-    frames=200,
-    interval=1500,
-    save_gif=True,
-    filename='my_workflow'
-)
-```
-This creates `my_workflow.gif`
 
 **Note**: Video export requires FFmpeg to be installed:
 - **macOS**: `brew install ffmpeg`
