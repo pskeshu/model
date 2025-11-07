@@ -55,20 +55,35 @@ python distributed_workflow_animation.py
 
 This will display an interactive window showing the animated workflow. Close the window to exit.
 
-### Save as GIF
+### Export as Video or GIF
 
-To save the animation as a GIF file, modify the `main()` function:
-
+**Save as MP4 video:**
 ```python
-# Change this line in main():
-animator.run(frames=200, interval=800, save_gif=True)
+animator.run(
+    frames=200,
+    interval=1500,
+    save_video=True,
+    filename='distributed_workflow'
+)
 ```
+Creates `distributed_workflow.mp4` - best for presentations and sharing
 
-Then run:
-
-```bash
-python distributed_workflow_animation.py
+**Save as animated GIF:**
+```python
+animator.run(
+    frames=200,
+    interval=1500,
+    save_gif=True,
+    filename='distributed_workflow'
+)
 ```
+Creates `distributed_workflow.gif` - good for documentation and web
+
+**Requirements for Video Export:**
+Video export requires FFmpeg:
+- macOS: `brew install ffmpeg`
+- Ubuntu/Debian: `sudo apt-get install ffmpeg`
+- Windows: Download from https://ffmpeg.org/download.html
 
 ## Customization
 

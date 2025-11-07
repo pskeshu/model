@@ -782,17 +782,49 @@ class WorkflowAnimator:
         self.draw_network(set(step['nodes']), set(step['edges']), step.get('title', ''))
         self.draw_action_log(step, upcoming)
 
-    def run(self, frames=200, interval=800, save_gif=False, filename='workflow_animation.gif'):
-        """Run the animation."""
+    def run(self, frames=200, interval=1500, save_gif=False, save_video=False,
+            filename='workflow_animation', fps=None):
+        """
+        Run the animation.
+
+        Args:
+            frames: Number of frames to animate
+            interval: Milliseconds between frames
+            save_gif: Save as animated GIF
+            save_video: Save as MP4 video
+            filename: Base filename (without extension)
+            fps: Frames per second for video (calculated from interval if not provided)
+        """
         anim = animation.FuncAnimation(self.fig, self.animate_frame,
                                       frames=frames, interval=interval,
                                       repeat=True)
 
+        # Calculate FPS from interval if not provided
+        if fps is None:
+            fps = 1000 / interval  # Convert milliseconds to frames per second
+
         if save_gif:
-            print(f"Saving animation to {filename}...")
-            writer = animation.PillowWriter(fps=1000//interval)
-            anim.save(filename, writer=writer)
-            print(f"Animation saved!")
+            gif_filename = f"{filename}.gif"
+            print(f"Saving animation as GIF to {gif_filename}...")
+            writer = animation.PillowWriter(fps=fps)
+            anim.save(gif_filename, writer=writer)
+            print(f"GIF saved: {gif_filename}")
+
+        if save_video:
+            mp4_filename = f"{filename}.mp4"
+            print(f"Saving animation as video to {mp4_filename}...")
+            try:
+                # Try FFmpeg writer first (best quality)
+                writer = animation.FFMpegWriter(fps=fps, bitrate=1800,
+                                               extra_args=['-vcodec', 'libx264'])
+                anim.save(mp4_filename, writer=writer)
+                print(f"Video saved: {mp4_filename}")
+            except Exception as e:
+                print(f"Error saving with FFmpeg: {e}")
+                print("\nTo save videos, install FFmpeg:")
+                print("  - macOS: brew install ffmpeg")
+                print("  - Ubuntu/Debian: sudo apt-get install ffmpeg")
+                print("  - Windows: Download from https://ffmpeg.org/download.html")
 
         plt.tight_layout(pad=1.0)
         plt.subplots_adjust(wspace=0.05)
@@ -843,9 +875,17 @@ def main():
     print("Starting animation...")
     print("Close the window to exit.\n")
 
-    # Run animation (set save_gif=True to save as GIF)
+    # Run animation
+    # To save as video: set save_video=True
+    # To save as GIF: set save_gif=True
     # interval: milliseconds between frames (1500ms = 1.5 seconds per step)
-    animator.run(frames=200, interval=1500, save_gif=False)
+    animator.run(
+        frames=200,
+        interval=1500,
+        save_gif=False,      # Set to True to save as GIF
+        save_video=False,    # Set to True to save as MP4 video
+        filename='distributed_workflow'
+    )
 
 
 if __name__ == "__main__":

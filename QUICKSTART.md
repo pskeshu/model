@@ -127,11 +127,34 @@ workflow.add_facility("YourLab",
                      has_analysis=True)
 ```
 
-### Save as GIF
+### Save as Video or GIF
 
+To save as MP4 video:
 ```python
-animator.run(frames=200, interval=800, save_gif=True)
+animator.run(
+    frames=200,
+    interval=1500,
+    save_video=True,
+    filename='my_workflow'
+)
 ```
+This creates `my_workflow.mp4`
+
+To save as animated GIF:
+```python
+animator.run(
+    frames=200,
+    interval=1500,
+    save_gif=True,
+    filename='my_workflow'
+)
+```
+This creates `my_workflow.gif`
+
+**Note**: Video export requires FFmpeg to be installed:
+- **macOS**: `brew install ffmpeg`
+- **Ubuntu/Debian**: `sudo apt-get install ffmpeg`
+- **Windows**: Download from https://ffmpeg.org/download.html
 
 ## Troubleshooting
 
