@@ -844,7 +844,8 @@ def main():
     print("Close the window to exit.\n")
 
     # Run animation (set save_gif=True to save as GIF)
-    animator.run(frames=200, interval=800, save_gif=False)
+    # interval: milliseconds between frames (1500ms = 1.5 seconds per step)
+    animator.run(frames=200, interval=1500, save_gif=False)
 
 
 if __name__ == "__main__":
