@@ -71,8 +71,8 @@ NODE_STYLES = {
     ),
     NodeType.RESEARCHER: NodeStyle(
         color='#00BCD4',  # Cyan
-        shape='*',         # Star
-        size=1000,
+        shape='o',         # Circle (better for text)
+        size=1400,         # Larger
         label='Researcher'
     ),
 }
@@ -160,8 +160,35 @@ class DistributedWorkflowGraph:
 
     def get_layout(self) -> Dict:
         """Calculate node positions using a layout algorithm."""
-        # Use spring layout with facility clustering
-        return nx.spring_layout(self.graph, k=2, iterations=50, seed=42)
+        # Use shell layout for better facility separation
+        # Group nodes by facility for clearer visualization
+        shells = []
+
+        # Inner shell: facility hubs
+        hubs = [n for n, t in self.node_types.items() if t == NodeType.FACILITY_HUB]
+        if hubs:
+            shells.append(hubs)
+
+        # Middle shell: researchers and key resources
+        researchers = [n for n, t in self.node_types.items() if t == NodeType.RESEARCHER]
+        storage = [n for n, t in self.node_types.items() if t == NodeType.STORAGE]
+        if researchers or storage:
+            shells.append(researchers + storage)
+
+        # Outer shell: microscopes, HPC, analysis
+        periphery = [n for n, t in self.node_types.items()
+                     if t in [NodeType.MICROSCOPE, NodeType.HPC, NodeType.ANALYSIS]]
+        if periphery:
+            shells.append(periphery)
+
+        # Use shell layout for better organization
+        pos = nx.shell_layout(self.graph, nlist=shells)
+
+        # Adjust positions to spread out better
+        for node in pos:
+            pos[node] = pos[node] * 1.5  # Scale up for more space
+
+        return pos
 
 
 class WorkflowAnimator:
@@ -182,16 +209,16 @@ class WorkflowAnimator:
         self.max_history = 10
 
         # Setup figure with two panels
-        self.fig = plt.figure(figsize=(22, 13))  # Slightly larger for better text rendering
-        self.fig.patch.set_facecolor('#1a1a1a')
+        self.fig = plt.figure(figsize=(24, 14))  # Larger for better visibility
+        self.fig.patch.set_facecolor('#0a0a0a')  # Slightly darker for better contrast
 
         # Create grid: network on left (70%), action log on right (30%)
         gs = gridspec.GridSpec(1, 2, width_ratios=[7, 3], figure=self.fig)
         self.ax_network = self.fig.add_subplot(gs[0])
         self.ax_log = self.fig.add_subplot(gs[1])
 
-        self.ax_network.set_facecolor('#1a1a1a')
-        self.ax_log.set_facecolor('#0d0d0d')
+        self.ax_network.set_facecolor('#0f0f0f')  # Dark but not pure black
+        self.ax_log.set_facecolor('#0a0a0a')
 
     def create_workflow_sequence(self) -> List[Dict]:
         """
@@ -679,18 +706,23 @@ class WorkflowAnimator:
     def draw_network(self, active_nodes: Set[str], active_edges: Set[Tuple], title: str = ''):
         """Draw the network with highlighted active nodes and edges."""
         self.ax_network.clear()
-        self.ax_network.set_facecolor('#1a1a1a')
+        self.ax_network.set_facecolor('#0f0f0f')
         self.ax_network.axis('off')
 
-        # Draw edges (inactive)
+        # Draw edges (inactive) - thinner and more subtle
         inactive_edges = [(u, v) for u, v in self.graph.edges() if (u, v) not in active_edges and (v, u) not in active_edges]
         nx.draw_networkx_edges(self.graph, self.pos, edgelist=inactive_edges,
-                              edge_color='#444444', width=1.5, alpha=0.3, ax=self.ax_network)
+                              edge_color='#333333', width=1.0, alpha=0.25, ax=self.ax_network,
+                              style='dashed')
 
-        # Draw active edges with glow effect
+        # Draw active edges with glow effect - brighter and thicker
         if active_edges:
+            # Glow layer
             nx.draw_networkx_edges(self.graph, self.pos, edgelist=list(active_edges),
-                                  edge_color='#FFD700', width=4, alpha=0.9, ax=self.ax_network)
+                                  edge_color='#FFD700', width=8, alpha=0.3, ax=self.ax_network)
+            # Main line
+            nx.draw_networkx_edges(self.graph, self.pos, edgelist=list(active_edges),
+                                  edge_color='#FFD700', width=4.5, alpha=1.0, ax=self.ax_network)
 
         # Draw nodes by type
         for node_type, style in NODE_STYLES.items():
@@ -701,30 +733,85 @@ class WorkflowAnimator:
             inactive = [n for n in nodes_of_type if n not in active_nodes]
             active = [n for n in nodes_of_type if n in active_nodes]
 
-            # Draw inactive nodes
+            # Draw inactive nodes with better visibility
             if inactive:
                 nx.draw_networkx_nodes(self.graph, self.pos, nodelist=inactive,
                                       node_color=style.color, node_shape=style.shape,
-                                      node_size=style.size, alpha=0.4, ax=self.ax_network)
+                                      node_size=style.size, alpha=0.5, ax=self.ax_network,
+                                      edgecolors='#555555', linewidths=1.5)
 
-            # Draw active nodes with glow
+            # Draw active nodes with prominent glow
             if active:
-                # Outer glow
+                # Outer glow (larger)
                 nx.draw_networkx_nodes(self.graph, self.pos, nodelist=active,
                                       node_color='#FFFFFF', node_shape=style.shape,
-                                      node_size=style.size * 1.5, alpha=0.3, ax=self.ax_network)
+                                      node_size=style.size * 1.8, alpha=0.25, ax=self.ax_network)
+                # Inner glow
+                nx.draw_networkx_nodes(self.graph, self.pos, nodelist=active,
+                                      node_color='#FFD700', node_shape=style.shape,
+                                      node_size=style.size * 1.35, alpha=0.4, ax=self.ax_network)
                 # Main node
                 nx.draw_networkx_nodes(self.graph, self.pos, nodelist=active,
                                       node_color=style.color, node_shape=style.shape,
                                       node_size=style.size, alpha=1.0, ax=self.ax_network,
-                                      edgecolors='#FFFFFF', linewidths=3)
+                                      edgecolors='#FFFFFF', linewidths=3.5)
 
-        # Draw labels for active nodes
-        if active_nodes:
-            active_labels = {n: n.split('_')[-1] if '_' in n else n for n in active_nodes}
-            nx.draw_networkx_labels(self.graph, self.pos, labels=active_labels,
-                                   font_size=9, font_color='white', ax=self.ax_network,
-                                   font_weight='bold')
+        # Draw permanent labels for important nodes (researchers and hubs)
+        important_nodes = {}
+        for node_id, node_type in self.node_types.items():
+            if node_type == NodeType.RESEARCHER:
+                # Show researcher name (e.g., "Ryan")
+                name = node_id.split('_')[-1]
+                important_nodes[node_id] = name
+            elif node_type == NodeType.FACILITY_HUB:
+                # Show facility name
+                facility = node_id.replace('_hub', '')
+                important_nodes[node_id] = facility
+
+        # Draw permanent labels with background for readability
+        for node_id, label_text in important_nodes.items():
+            if node_id in self.pos:
+                x, y = self.pos[node_id]
+
+                # Determine if node is active for styling
+                is_active = node_id in active_nodes
+
+                # Text properties
+                fontsize = 12 if is_active else 10
+                fontweight = 'bold'
+                text_color = '#FFFFFF' if is_active else '#CCCCCC'
+
+                # Draw text with semi-transparent background box
+                self.ax_network.text(x, y, label_text,
+                                   fontsize=fontsize,
+                                   fontweight=fontweight,
+                                   color=text_color,
+                                   ha='center', va='center',
+                                   bbox=dict(boxstyle='round,pad=0.4',
+                                           facecolor='#000000',
+                                           edgecolor='#666666' if not is_active else '#FFD700',
+                                           alpha=0.85,
+                                           linewidth=2 if is_active else 1),
+                                   zorder=1000)
+
+        # Draw labels for other active nodes
+        other_active = {n: n.split('_')[-1] for n in active_nodes
+                       if n not in important_nodes}
+        if other_active:
+            for node_id, label in other_active.items():
+                if node_id in self.pos:
+                    x, y = self.pos[node_id]
+                    self.ax_network.text(x, y, label,
+                                       fontsize=10,
+                                       fontweight='bold',
+                                       color='#FFFFFF',
+                                       ha='center', va='center',
+                                       bbox=dict(boxstyle='round,pad=0.3',
+                                               facecolor='#000000',
+                                               edgecolor='#FFD700',
+                                               alpha=0.8,
+                                               linewidth=1.5),
+                                       zorder=1000)
 
         # Add title
         if title:
