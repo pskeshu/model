@@ -401,9 +401,9 @@ class WorkflowAnimator:
         y_position -= 0.08
 
         # Separator
-        self.ax_log.axhline(y=y_position, xmin=0.05, xmax=0.95,
-                           transform=self.ax_log.transAxes,
-                           color='#333333', linewidth=1)
+        self.ax_log.plot([0.05, 0.95], [y_position, y_position],
+                        transform=self.ax_log.transAxes,
+                        color='#333333', linewidth=1)
         y_position -= 0.05
 
         # Upcoming actions
@@ -445,9 +445,9 @@ class WorkflowAnimator:
 
         # Recent history section
         y_position = 0.30
-        self.ax_log.axhline(y=y_position, xmin=0.05, xmax=0.95,
-                           transform=self.ax_log.transAxes,
-                           color='#333333', linewidth=1)
+        self.ax_log.plot([0.05, 0.95], [y_position, y_position],
+                        transform=self.ax_log.transAxes,
+                        color='#333333', linewidth=1)
         y_position -= 0.03
 
         self.ax_log.text(0.05, y_position, '✓ COMPLETED',
