@@ -161,33 +161,53 @@ class DistributedWorkflowGraph:
 
     def get_layout(self) -> Dict:
         """Calculate node positions using a layout algorithm."""
-        # Use shell layout for better facility separation
-        # Group nodes by facility for clearer visualization
-        shells = []
+        # Group nodes by facility for spatial clustering
+        # This ensures Ryan is close to Janelia resources, etc.
+        facility_groups = {}
+        for node in self.graph.nodes():
+            # Extract facility name (e.g., "Janelia_Ryan" -> "Janelia")
+            facility = node.split('_')[0]
+            if facility not in facility_groups:
+                facility_groups[facility] = []
+            facility_groups[facility].append(node)
 
-        # Inner shell: facility hubs
-        hubs = [n for n, t in self.node_types.items() if t == NodeType.FACILITY_HUB]
-        if hubs:
-            shells.append(hubs)
+        # Position each facility in a different sector/region
+        # This creates a more organic, distributed look
+        num_facilities = len(facility_groups)
+        initial_pos = {}
 
-        # Middle shell: researchers and key resources
-        researchers = [n for n, t in self.node_types.items() if t == NodeType.RESEARCHER]
-        storage = [n for n, t in self.node_types.items() if t == NodeType.STORAGE]
-        if researchers or storage:
-            shells.append(researchers + storage)
+        for i, (facility, nodes) in enumerate(facility_groups.items()):
+            # Distribute facilities around a circle
+            angle = 2 * np.pi * i / num_facilities
+            # Random radius variation for organic look
+            base_radius = 2.0 + random.random() * 0.5
+            center_x = base_radius * np.cos(angle)
+            center_y = base_radius * np.sin(angle)
 
-        # Outer shell: microscopes, HPC, analysis
-        periphery = [n for n, t in self.node_types.items()
-                     if t in [NodeType.MICROSCOPE, NodeType.HPC, NodeType.ANALYSIS]]
-        if periphery:
-            shells.append(periphery)
+            # Place nodes from this facility near their facility center
+            # with some random spread for organic clustering
+            for j, node in enumerate(nodes):
+                # Small random offset from facility center
+                offset_angle = random.random() * 2 * np.pi
+                offset_radius = random.random() * 0.8
+                initial_pos[node] = np.array([
+                    center_x + offset_radius * np.cos(offset_angle),
+                    center_y + offset_radius * np.sin(offset_angle)
+                ])
 
-        # Use shell layout for better organization
-        pos = nx.shell_layout(self.graph, nlist=shells)
+        # Use spring layout with initial positions to make it look organic
+        # while maintaining facility grouping
+        pos = nx.spring_layout(
+            self.graph,
+            pos=initial_pos,
+            k=0.5,  # Optimal distance between nodes
+            iterations=50,
+            seed=42  # For reproducibility
+        )
 
-        # Adjust positions to spread out better
+        # Scale up for better visibility
         for node in pos:
-            pos[node] = pos[node] * 1.5  # Scale up for more space
+            pos[node] = pos[node] * 2.0
 
         return pos
 
