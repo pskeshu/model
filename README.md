@@ -98,6 +98,12 @@ Model communicates discoveries through:
 - **Sample_Spec Schema**: Complete specification for experimental conditions ([sample_spec.md](sample_spec.md))
 - **Conceptual Architecture**: Detailed system requirements and design
 - **Data Structures**: JSON schemas for experiment specification and results
+- **Global Experiment Queue**: Worldwide job queue system for managing imaging experiments ([EXPERIMENT_QUEUE.md](EXPERIMENT_QUEUE.md))
+  - RESTful API for experiment submission and review
+  - Multi-microscope system support (DiSPIM, confocal, widefield, etc.)
+  - Priority-based queue management
+  - Email notification system
+  - Approval workflow for reviewers
 
 ### 🚧 In Development
 - **Model Architecture**: Multi-head neural network implementation
