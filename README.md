@@ -104,6 +104,7 @@ Model communicates discoveries through:
   - Priority-based queue management
   - Email notification system
   - Approval workflow for reviewers
+  - Animated visualization of workflow ([ANIMATION_QUICKSTART.md](ANIMATION_QUICKSTART.md))
 
 ### 🚧 In Development
 - **Model Architecture**: Multi-head neural network implementation
